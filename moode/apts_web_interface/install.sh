@@ -1,7 +1,7 @@
 #!/bin/bash
 
 start_time="$(date +"%T")"
-echo "* Installing : Audiophonics ToolSet (web interface)"
+echo "* Installing : Quadify ToolSet (web interface)"
 start_pwd=${PWD}
 echo "" > install_log.txt
 
@@ -22,7 +22,7 @@ done
 # ---------------------------------------------------
 # Enable service
 printf "[Unit]
-Description=Audiophonics toolset in a web interface
+Description=Quadify toolset in a web interface
 After=mpd.service
 Requires=mpd.service
 
@@ -32,7 +32,7 @@ ExecStart= /bin/node ${PWD}/apts_web_interface.js
 #StandardOutput=null
 Type=simple
 Restart=always
-User=pi
+User=$(whoami)
 
 [Install]
 WantedBy=multi-user.target
@@ -41,9 +41,9 @@ WantedBy=multi-user.target
 systemctl daemon-reload > /dev/null 2>> install_log.txt &&
 systemctl enable apts_web_interface > /dev/null 2>> install_log.txt &&
 systemctl restart apts_web_interface > /dev/null 2>> install_log.txt &&
-echo "Audiophonics ToolSet service enabled & started" 
+echo "Quadify ToolSet service enabled & started" 
 # ---------------------------------------------------
 # Say something nice and exit
-echo "* End of installation : Audiophonics ToolSet (web interface) - no reboot required"
+echo "* End of installation : Quadify ToolSet (web interface) - no reboot required"
 echo started at $start_time finished at "$(date +"%T")" >> install_log.txt
 exit 0

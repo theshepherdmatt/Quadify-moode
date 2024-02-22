@@ -3,7 +3,7 @@
 start_time="$(date +"%T")"
 starting_dir=${PWD}
 
-echo "***   Installation of EVO_SABRE for moOde" 
+echo "***   Installation of Quadify for moOde" 
 echo "***   _____________________________________" 
 
 # Install modules
@@ -15,6 +15,6 @@ done
 
 # ---------------------------------------------------
 # Say something nice and exit
-echo "* End of installation : EVO_SABRE for moOde"
+echo "* End of installation : Quadify for moOde"
 echo started at $start_time finished at "$(date +"%T")"
 exit 0

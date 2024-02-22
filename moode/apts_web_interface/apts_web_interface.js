@@ -1,5 +1,5 @@
 const http = require("http");
-const title = "Evo Sabre";
+const title = "Quadify";
 const fs = require("fs");
 const MODULE_PATH = "./ap_modules";
 const MAX_POST_BODY_LENGTH = 5000;
