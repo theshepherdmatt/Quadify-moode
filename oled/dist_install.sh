@@ -17,10 +17,10 @@ case "$1" in
 	echo "* Installing : Quadify OLED#2"
 	echo "" > install_log.txt
 	install_dep_volumio
-	sudo -u volumio npm install pi-spi  				 > /dev/null 2>> install_log.txt
-	sudo -u volumio npm install async  					 > /dev/null 2>> install_log.txt
-	sudo -u volumio npm install onoff  					 > /dev/null 2>> install_log.txt
-	sudo -u volumio npm install date-and-time 			 > /dev/null 2>> install_log.txt
+	sudo -u volumio npm install pi-spi  			 > /dev/null 2>> install_log.txt
+	sudo -u volumio npm install async  			 > /dev/null 2>> install_log.txt
+	sudo -u volumio npm install onoff  			 > /dev/null 2>> install_log.txt
+	sudo -u volumio npm install date-and-time 		 > /dev/null 2>> install_log.txt
 	sudo -u volumio npm install socket.io-client@2.1.1 	 > /dev/null 2>> install_log.txt
 	
 	# ---------------------------------------------------
