@@ -16,7 +16,8 @@ case "$1" in
 	start_time="$(date +"%T")"
 	echo "* Installing : Quadify OLED#2"
 	echo "" > install_log.txt
-	install_dep_volumio
+	install_dep_volumio 
+ 	sudo -u volumio npm install i2c-bus  			 > /dev/null 2>> install_log.txt
 	sudo -u volumio npm install pi-spi  			 > /dev/null 2>> install_log.txt
 	sudo -u volumio npm install async  			 > /dev/null 2>> install_log.txt
 	sudo -u volumio npm install onoff  			 > /dev/null 2>> install_log.txt
@@ -74,10 +75,11 @@ case "$1" in
 	# ---------------------------------------------------
 	# Installing nodejs if needed and deps
 	echo "installing nodejs env and dependencies"
-	apt-get install -y nodejs npm					 > /dev/null 2>> install_log.txt
-	sudo -u pi npm install pi-spi  					 > /dev/null 2>> install_log.txt
-	sudo -u pi npm install async  					 > /dev/null 2>> install_log.txt
-	sudo -u pi npm install onoff  					 > /dev/null 2>> install_log.txt
+	apt-get install -y nodejs npm				 > /dev/null 2>> install_log.txt
+	sudo -u volumio npm install i2c-bus  			 > /dev/null 2>> install_log.txt
+ 	sudo -u pi npm install pi-spi  				 > /dev/null 2>> install_log.txt
+	sudo -u pi npm install async  				 > /dev/null 2>> install_log.txt
+	sudo -u pi npm install onoff  				 > /dev/null 2>> install_log.txt
 	sudo -u pi npm install date-and-time 			 > /dev/null 2>> install_log.txt
 	sudo -u pi npm install socket.io-client 		 > /dev/null 2>> install_log.txt
 
