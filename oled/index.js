@@ -1,3 +1,36 @@
+const { exec } = require('child_process');
+
+// Function to run a script
+function runScript(scriptName) {
+    console.log(`Executing ${scriptName}.js...`); // Add print statement here
+    exec(`node ${scriptName}.js`, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error executing ${scriptName}.js: ${error.message}`);
+            return;
+        }
+        console.log(`${scriptName}.js output: ${stdout}`);
+        if (stderr) console.error(`${scriptName}.js stderr: ${stderr}`);
+    });
+    console.log(`Finished executing ${scriptName}.js`); // Add print statement here
+}
+
+// Function to run buttonsleds.js script
+function runButtonsLedsScript() {
+	console.log("Running buttonsleds.js script...");
+    runScript('buttonsleds');
+}
+
+// Function to run rotary.js script
+function runRotaryScript() {
+	console.log("Running rotary.js script...");
+    runScript('rotary');
+}
+
+// Run both buttonsleds.js and rotary.js on startup
+console.log("Starting scripts...");
+runButtonsLedsScript();
+runRotaryScript();
+
 const os = require("os");
 const date = require('date-and-time');
 const oled = require('./oled.js');
@@ -18,8 +51,8 @@ var extn_exit_sleep_mode = false;
 const opts = {
 	width: 256,
 	height: 64,
-	dcPin: 27,
-	rstPin : 24,
+	dcPin: 24,
+	rstPin : 25,
 	contrast : CONTRAST,
 	device: "/dev/spidev0.0",
 };
@@ -201,7 +234,7 @@ ap_oled.prototype.listen_to = function(api,frequency){
                 this.data.artist !== data.artist || 
                 this.data.album  !== data.album  
             ){
-                this.text_to_display = data.title + (data.artist?" - " + data.artist:"") + (data.album?" - " + data.album:"") ;
+                this.text_to_display = data.title + (data.artist?" - " + data.artist:"");
 				this.driver.CacheGlyphsData( this.text_to_display);
 				this.text_width = this.driver.getStringWidthUnifont(this.text_to_display + " - ");
 				
@@ -337,7 +370,7 @@ if (this.page === "snake_screensaver") return;
 			let _x =  Math.floor(Math.random() * (this.width ));
 			let _y =  Math.floor(Math.random() * (this.height/3))*3;
 			random_pickups.push([_x,_y]);
-		}	
+		}
 	}
 	screen_saver_animation_reset();
 	this.refresh_action = ()=>{
@@ -377,44 +410,30 @@ if (this.page === "deep_sleep") return;
 
 ap_oled.prototype.clock_mode = function(){
 if (this.page === "clock") return;
-	clearInterval(this.update_interval);
-	this.page = "clock";
-	
-	this.refresh_action = ()=>{
-		this.driver.buffer.fill(0x00);
-		let fdate = date.format(new Date(),'YYYY/MM/DD'),
-		ftime = date.format(new Date(),'HH:mm:ss');
-		
-		this.driver.setCursor(90, 0);
-		this.driver.writeString( fonts.monospace ,1,fdate,3);
-		
-		this.driver.setCursor(50,15);
-		this.driver.writeString( fonts.monospace ,3,ftime,6);
-		this.driver.drawLine(1, 41, 255, 41, 5, false);
-		
-		
-		this.driver.setCursor(20,47);
-		this.driver.writeString(fonts.monospace ,1, (this.ip?this.ip:"No network...") ,4);
-		
-		
-		if(this.data && this.data.volume !== null ){
-			let volstring = this.data.volume.toString();
-			if(this.data.mute === true || volstring === "0") volstring = "X";
-			this.driver.setCursor(185,47);
-			this.driver.writeString(fonts.icons , 1 , "0" ,4); 
-			this.driver.setCursor(195,47);
-			this.driver.writeString(fonts.monospace ,1, volstring ,6);
+        clearInterval(this.update_interval);
+        this.page = "clock";
 
-		}
-		this.driver.update(true);
-	}
-	this.refresh_action();
-	this.update_interval = setInterval( ()=>{this.refresh_action()}, 1000);
-	
+        this.refresh_action = ()=>{
+                this.driver.buffer.fill(0x00);
+                let fdate = date.format(new Date(),'YYYY/MM/DD'),
+                ftime = date.format(new Date(),'HH:mm');
+
+                //this.driver.setCursor(100, 45);
+                //this.driver.writeString( fonts.monospace ,2,fdate,4);
+
+                this.driver.setCursor(70,9);
+                this.driver.writeString( fonts.monospace ,4,ftime,8);
+                //this.driver.drawLine(1, 35, 255, 35, 5, false);
+
+                this.driver.update(true);
+        }
+        this.refresh_action();
+        this.update_interval = setInterval( ()=>{this.refresh_action()}, 1000);
+
 }
 
 ap_oled.prototype.playback_mode = function(){
-    
+
 	if (this.page === "playback") return;
 	clearInterval(this.update_interval);
 
@@ -423,45 +442,63 @@ ap_oled.prototype.playback_mode = function(){
     this.text_to_display = this.text_to_display || "";
 	this.refresh_track = REFRESH_TRACK;
 	this.refresh_action =()=>{
-		
+
         if(this.plotting){ return }; // skip plotting of this frame if the pi has not finished plotting the previous frame
         this.plotting = true;
 
 		this.driver.buffer.fill(0x00);
-		
+
 		if(this.data){
             // volume
             if(this.data.volume !== null ){
                 let volstring = this.data.volume.toString();
                 if(this.data.mute === true || volstring === "0") volstring = "X";
-                
-                this.driver.setCursor(0,0);
-                this.driver.writeString(fonts.icons , 1 , "0" ,5); 
-                this.driver.setCursor(10,1);
-                this.driver.writeString(fonts.monospace ,1, volstring ,5);
-            }    
-			
-			// repeat
-			if(this.data.repeatSingle){
-				this.driver.setCursor(232,0);
-				this.driver.writeString(fonts.icons , 1 , "5" ,5); 
-			} else if( this.data.repeat ){
-				this.driver.setCursor(232,0);
-                this.driver.writeString(fonts.icons , 1 , "4" ,5); 
+
+		this.driver.setCursor(0, this.height - 20); // Move volume display down
+		this.driver.writeString(fonts.icons, 1, "0", 5); // Volume icon
+		this.driver.setCursor(10, this.height - 19); // Adjust accordingly
+		this.driver.writeString(fonts.monospace, 1, volstring, 5); // Volume level
+
+
             }
+
+		// Repeat Single or Repeat All
+	    if(this.data.repeatSingle){
+    		this.driver.setCursor(232, this.height - 20); // Move repeat single symbol down
+    		this.driver.writeString(fonts.icons, 1, "5", 5); // Repeat single symbol
+	    } else if(this.data.repeat){
+    		this.driver.setCursor(232, this.height - 20); // Move repeat all symbol down
+    		this.driver.writeString(fonts.icons, 1, "4", 5); // Repeat all symbol
+	    }
+
+			if (this.data.trackType) {
+				let totalTextWidth = this.data.trackType.length * 5;
+				let startX = (this.width - totalTextWidth) / 2;
 			
+				// Clear the area before drawing new text
+				// Assuming there's a method to draw a rectangle, fillRect(x, y, width, height, color)
+				// Adjust the height and y position according to your needs
+				this.driver.fillRect(startX, this.height - 22, totalTextWidth, 10, 0); // 0 for black
+			
+				this.driver.setCursor(startX, this.height - 22);
+				this.driver.writeString(fonts.monospace, 1, this.data.trackType, 4);
+			}
+		  
+			  
 			// track type (flac, mp3, webradio...etc.)
-			if(this.data.trackType){
-				this.driver.setCursor(35,1);
-				this.driver.writeString(fonts.monospace , 1 , this.data.trackType ,4); 
-			}
-		
+			//if(this.data.trackType){
+				
+				//this.driver.setCursor(70, this.height - 22); // Move file type down
+				//this.driver.writeString(fonts.monospace, 1, this.data.trackType, 4);
+
+			//}
+
 			// string with any data we have regarding sampling rate and bitrate
-			if(this.footertext){
-				this.driver.setCursor(0,57);
-				this.driver.writeString(fonts.monospace , 1 , this.footertext ,5); 
-			}
-			
+			//if(this.footertext){
+				//this.driver.setCursor(0,57);
+				//this.driver.writeString(fonts.monospace , 1 , this.footertext ,5); 
+			//}
+
 			// play pause stop logo
 			if(this.data.status){
                 let status_symbol = "";
@@ -476,44 +513,61 @@ ap_oled.prototype.playback_mode = function(){
 						status_symbol = "3"
 						break;
 				}    
-                this.driver.setCursor(246,0);
-                this.driver.writeString(fonts.icons ,1, status_symbol ,6);
+
+		this.driver.setCursor(246, this.height - 20); // Move play/pause/stop logo down
+		this.driver.writeString(fonts.icons, 1, status_symbol, 6);
+
+
 			}
 
-			// track title album artists
-			if(this.text_to_display.length){ 
-				//  if the whole text is short enough to fit the whole screen
-				if( this.text_width <= this.width ){
-					this.driver.setCursor( 0, 17 );
-					this.driver.writeStringUnifont(this.text_to_display,7 );  
-				}
-				else{ // text overflows the display (very likely considering it's 256px) : make the text scroll alongside its horizontal direction
-					let text_to_display = this.text_to_display;
-					text_to_display = text_to_display + " - " + text_to_display + " - ";
-					if(this.scroller_x + (this.text_width) < 0 ){
-						this.scroller_x = 0;
+
+			// Inside your playback_mode function or similar
+			if (this.text_to_display.length) {
+				let splitIndex = this.text_to_display.indexOf(" - ");
+				let title = this.text_to_display.substring(0, splitIndex);
+				let artist = this.text_to_display.substring(splitIndex + 3);
+
+				// Function to handle scrolling or centering text
+				const handleTextDisplay = (text, initialY) => {
+					let textWidth = this.driver.getStringWidthUnifont(text);
+					if (textWidth > this.width) {
+						// Scroll text
+						if (!this.scrollX) this.scrollX = 0;
+						this.driver.cursor_x = this.scrollX;
+						this.scrollX = this.scrollX - 1 < -textWidth ? this.width : this.scrollX - 1;
+					} else {
+						// Center text
+						this.driver.cursor_x = (this.width - textWidth) / 2;
 					}
-					this.driver.cursor_x = this.scroller_x;
-					this.driver.cursor_y = 14
-					this.driver.writeStringUnifont(text_to_display,7 );
-				}
+					this.driver.cursor_y = initialY;
+					this.driver.writeStringUnifont(text, 7);
+				};
+
+				// Adjust Y positions as needed
+				handleTextDisplay(title, 0); // For title
+				handleTextDisplay(artist, 16); // For artist, placed below the title
 			}
+
+
 			// seek data
 			if(this.data.seek_string){
 				let border_right = this.width -5;
 				let Y_seekbar = 35;
 				let Ymax_seekbar = 38;
-				this.driver.drawLine(3, Y_seekbar, border_right , Y_seekbar, 3);
-				this.driver.drawLine(border_right, Y_seekbar,border_right , Ymax_seekbar, 3);
-				this.driver.drawLine(3, Ymax_seekbar,border_right, Ymax_seekbar, 3);
-				this.driver.drawLine(3, Ymax_seekbar, 3, Y_seekbar, 3);
+				let bottomY = this.height - 7; // Start 10 pixels from the bottom
+				// Adjusted code
+				this.driver.drawLine(3, bottomY, border_right, bottomY, 3);
+				this.driver.drawLine(border_right, bottomY, border_right, this.height - 4, 3); // Adjusted to be 3 pixels above bottomY
+				this.driver.drawLine(3, this.height - 4, border_right, this.height - 4, 3); // Same here
+				this.driver.drawLine(3, this.height - 4, 3, bottomY, 3); // And here
+				this.driver.fillRect(3, bottomY, this.data.ratiobar, 4, 4); // Filling the progress bar
 				this.driver.cursor_y = 43;
-				this.driver.cursor_x = 83;
-				this.driver.writeString(fonts.monospace , 1 , this.data.seek_string ,5); 
-				this.driver.fillRect(3, Y_seekbar, this.data.ratiobar, 4, 4);
+				this.driver.cursor_x = 93;
+				this.driver.writeString(fonts.monospace , 0 , this.data.seek_string ,5);
+
 			}
 		}
-		
+
 		this.driver.update();
 		this.plotting = false;
         if(this.refresh_track) return this.refresh_track--; // ne pas updater le curseur de scroll avant d'avoir écoulé les frames statiques (juste après un changement de morceau)
@@ -523,7 +577,6 @@ ap_oled.prototype.playback_mode = function(){
 	this.update_interval = setInterval( ()=>{ this.refresh_action() },opts.main_rate);
 	this.refresh_action();
 }
-
 
 ap_oled.prototype.get_ip = function(){
 	try{
@@ -639,4 +692,3 @@ fs.readFile("config.json",(err,data)=>{
 	process.on('SIGUSR2', exitcatcher.bind(null, {exit:true}));
 
 });
-

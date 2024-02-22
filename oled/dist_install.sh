@@ -2,7 +2,7 @@
 case "$1" in 
 'volumio')
 	install_dep_volumio(){
-		if apt-get -qq install build-essential 2>&1 /dev/null; then
+		if apt-get -qq install build-essential > /dev/null 2>&1; then
 			echo "Build-essential package is installed."
 		else
 			printf "This version of Volumio lacks some dependencies for software compilation.\nTrying to workaround using this technique : https://community.volumio.org/t/cannot-install-build-essential-package/46856/16 ...\n" &&
@@ -14,7 +14,7 @@ case "$1" in
 	}
  
 	start_time="$(date +"%T")"
-	echo "* Installing : Evo Sabre OLED#2"
+	echo "* Installing : Quadify OLED#2"
 	echo "" > install_log.txt
 	install_dep_volumio
 	sudo -u volumio npm install pi-spi  				 > /dev/null 2>> install_log.txt
@@ -41,8 +41,8 @@ case "$1" in
 	After=volumio.service
 	[Service]
 	WorkingDirectory=${PWD}
-	ExecStart=/bin/node ${PWD}/index.js volumio
-	ExecStop=/bin/node ${PWD}/off.js
+	ExecStart=/usr/bin/node ${PWD}/index.js volumio
+	ExecStop=/usr/bin/node ${PWD}/off.js
 	StandardOutput=null
 	Type=simple
 	User=volumio
@@ -56,10 +56,10 @@ case "$1" in
 	if lsmod | grep "spidev" &> /dev/null ; then
 	  systemctl start oled
 	  echo "Display should turn on."
-	  echo "*End of installation : Evo Sabre OLED#2 (spidev module is already loaded, so no reboot is required)"
+	  echo "*End of installation : Quadify OLED#2 (spidev module is already loaded, so no reboot is required)"
 	  
 	else
-	  echo "*End of installation : Evo Sabre OLED#2 (spidev module is NOT loaded : a reboot is required)"
+	  echo "*End of installation : Quadify OLED#2 (spidev module is NOT loaded : a reboot is required)"
 	fi
 
 	echo started at $start_time finished at "$(date +"%T")" >> install_log.txt
@@ -68,7 +68,7 @@ case "$1" in
 
 'moode')
 	start_time="$(date +"%T")"
-	echo "* Installing : Evo Sabre OLED#2"
+	echo "* Installing : Quadify OLED#2"
 	echo "" > install_log.txt
 
 	# ---------------------------------------------------
@@ -103,11 +103,11 @@ case "$1" in
 	Requires=mpd.service
 	[Service]
 	WorkingDirectory=${PWD}
-	ExecStart=/bin/node ${PWD}/index.js moode
-	ExecStop=/bin/node ${PWD}/off.js
+	ExecStart=/usr/bin/node ${PWD}/index.js moode
+	ExecStop=/usr/bin/node ${PWD}/off.js
 	StandardOutput=null
 	Type=simple
-	User=pi
+	User=$(whoami)
 	[Install]
 	WantedBy=multi-user.target"> /etc/systemd/system/oled.service &&
 	systemctl enable oled	> /dev/null 2>> install_log.txt	&&
@@ -115,11 +115,11 @@ case "$1" in
 
 	if lsmod | grep "spidev" &> /dev/null ; then
 	  systemctl start oled
-	  echo "Display should turn on."
-	  echo "*End of installation : Evo Sabre OLED#2 (spidev module is already loaded, so no reboot is required)"
+	  echo "Display should turn on, if not give it a reboot."
+	  echo "*End of installation : Quadify OLED#2 (spidev module is already loaded, so no reboot is required)"
 	  
 	else
-	  echo "*End of installation : Evo Sabre OLED#2 (spidev module is NOT loaded : a reboot is required)"
+	  echo "*End of installation : Quadify OLED#2 (spidev module is NOT loaded : a reboot is required)"
 	fi
 
 	echo started at $start_time finished at "$(date +"%T")" >> install_log.txt
@@ -127,5 +127,6 @@ case "$1" in
 	;;
 	
 esac 
+
 
 

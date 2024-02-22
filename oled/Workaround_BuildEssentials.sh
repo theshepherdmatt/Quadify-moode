@@ -1,15 +1,29 @@
 #!/bin/bash
 
+# Define the APT sources list file
 SRC=/etc/apt/sources.list
-if ! grep -q 'stretch' $SRC; then
-	sed -i '$adeb http://raspbian.raspberrypi.org/raspbian/ stretch main contrib non-free rpi' $SRC
+
+# Backup the original sources list in case something goes wrong
+cp $SRC $SRC.backup
+
+# Check if 'buster' is not already in the sources list
+if ! grep -q 'buster' $SRC; then
+    # Add the Debian Buster repositories for package installation
+    echo "Adding Buster sources..."
+    echo 'deb http://raspbian.raspberrypi.org/raspbian/ buster main contrib non-free rpi' | sudo tee -a $SRC
 fi
-apt-get update
 
-apt-get -y install binutils
-apt-get -y install libstdc++-4.9-dev
-apt-get -y install gcc-4.9 gcc g++-4.9 g++ dpkg-dev
+# Update the package lists
+apt update
 
-sed -i '/stretch/d' $SRC
-apt-get update
+# Install the required packages
+apt -y install binutils libstdc++-6-dev gcc-8 gcc g++-8 g++
+
+# Remove the Buster sources to prevent future compatibility issues
+sed -i '/buster/d' $SRC
+
+# Update the package lists after removing the Buster sources
+apt update
+
+echo "Installation complete. Buster sources removed."
 

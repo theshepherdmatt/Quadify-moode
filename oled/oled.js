@@ -45,8 +45,8 @@ var Oled = function(opts) {
   this.WIDTH = opts.width || 256;
   this.horizontal_columns = this.WIDTH >> 2;
   
-  this.dcPinNumber = opts.dcPin || 27;
-  this.rstPinNumber = opts.rstPin || 24;
+  this.dcPinNumber = opts.dcPin || 24;
+  this.rstPinNumber = opts.rstPin || 25;
   this.divisor = opts.divisor || 0xF1;
   this.device = opts.device || "/dev/spidev0.0";
   this.cursor_x = 0;
@@ -467,22 +467,26 @@ Oled.prototype.setContrast = function(contrast,cb){
 }
 
 
-Oled.prototype.drawPixel = function(x,y,color,bypass_buffer) {
+Oled.prototype.drawPixel = function(x, y, color, bypass_buffer) {
+    // Calculate the new x and y coordinates for the rotated display
+    let newX = this.WIDTH - x - 1;
+    let newY = this.HEIGHT - y - 1;
 
+    // Update the rest of the function with the new x and y coordinates
     // Ne rien faire si le pixel n'est pas dans l'espace de l'écran
     if (	
-            x >= this.WIDTH  || 
-            y >= this.HEIGHT || 
-            x < 0 ||
-			y < 0
+            newX >= this.WIDTH  || 
+            newY >= this.HEIGHT || 
+            newX < 0 ||
+			newY < 0
         ){ 
             return;
         } 
 
-    let horitonzal_index = x >> 1; 
-    let buffer_index =  horitonzal_index   + ( (this.horizontal_columns <<1 ) * y )  // quel element du buffer faut-il modifier pour changer ce pixel ?
+    let horitonzal_index = newX >> 1; 
+    let buffer_index =  horitonzal_index   + ( (this.horizontal_columns <<1 ) * newY )  // quel element du buffer faut-il modifier pour changer ce pixel ?
     let oled_subcolumn_state = this.buffer[buffer_index];	
-    let right_col = x & 0x1; // chaque entrée du buffer représente 2 pixels. On détermine ici si x concerne le pixel de gauche ou de droite représenté par oled_subcolumn_state. ( true si x est impair )
+    let right_col = newX & 0x1; // chaque entrée du buffer représente 2 pixels. On détermine ici si x est impair.
     let sub_col_left = oled_subcolumn_state >> 4; // qu'est-ce qu'on a dans la col 0 (gauche) ?
     let sub_col_right = oled_subcolumn_state & 0x0f;  // qu'est-ce qu'on a dans la col 1 (droite) ?
 

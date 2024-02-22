@@ -2,8 +2,8 @@ const oled = require('./oled.js');
 const opts = {
 	width: 256,
 	height: 64,
-	dcPin: 27,
-	rstPin : 24,
+	dcPin: 24,
+	rstPin : 25,
 	contrast : 0,
 	flip : true,
 	device: "/dev/spidev0.0",
