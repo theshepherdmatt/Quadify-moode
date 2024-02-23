@@ -62,6 +62,72 @@ function read_button_matrix() {
     return button_matrix_state;
 }
 
+let platform = '';
+
+function detectPlatform(callback) {
+    exec("volumio status", (error, stdout, stderr) => {
+        if (!error) {
+            platform = 'volumio';
+        } else {
+            platform = 'moode';
+        }
+        console.log(`Detected platform: ${platform}`);
+        callback();
+    });
+}
+
+function executeCommand(command) {
+    let cmd = '';
+    
+    if (platform === 'volumio') {
+        switch (command) {
+            case "play": cmd = "volumio play"; break;
+            case "pause": cmd = "volumio pause"; break;
+            case "next": cmd = "volumio next"; break;
+            case "prev": cmd = "volumio previous"; break;
+            case "repeat": cmd = "volumio repeat"; break;
+            case "random": cmd = "volumio random"; break;
+            case "load Favourite-Radio": 
+                // Volumio specific command to play a favorite radio station
+                // Adjust as necessary, may require using Volumio's REST API
+                cmd = ""; 
+                console.log("Load Favourite-Radio command needs to be customized for Volumio.");
+                break;
+            case "restart oled":
+                cmd = "sudo systemctl restart oled.service";
+                break;
+        }
+    } else if (platform === 'moode') {
+        switch (command) {
+            case "play":
+            case "pause":
+            case "next":
+            case "prev":
+            case "repeat":
+            case "random":
+                cmd = `mpc ${command}`;
+                break;
+            case "load Favourite-Radio":
+                cmd = "mpc load Favourite-Radio"; // Adjust for actual playlist name
+                break;
+            case "restart oled":
+                cmd = "sudo systemctl restart oled.service";
+                break;
+        }
+    }
+
+    if (cmd) {
+        exec(cmd, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error executing command: ${error.message}`);
+                return;
+            }
+            if (stdout) console.log(stdout);
+            if (stderr) console.error(`stderr: ${stderr}`);
+        });
+    }
+}
+
 function check_buttons_and_update_leds() {
     const button_matrix = read_button_matrix();
 
@@ -74,13 +140,13 @@ function check_buttons_and_update_leds() {
                 console.log(`Button ${button_id} pressed`);
                 
                 switch(button_id) {
-                    case 1: executeMpcCommand("play"); break;
-                    case 2: executeMpcCommand("pause"); break;
-                    case 3: executeMpcCommand("next"); break;
-                    case 4: executeMpcCommand("prev"); break;
-                    case 5: executeMpcCommand("repeat"); break;
-                    case 6: executeMpcCommand("random"); break;
-                    case 7: executeMpcCommand("load Favourite-Radio"); break;
+                    case 1: executeCommand("play"); break;
+                    case 2: executeCommand("pause"); break;
+                    case 3: executeCommand("next"); break;
+                    case 4: executeCommand("prev"); break;
+                    case 5: executeCommand("repeat"); break;
+                    case 6: executeCommand("random"); break;
+                    case 7: executeCommand("load Favourite-Radio"); break;
                     case 8: 
                         exec("sudo systemctl restart oled.service", (error, stdout, stderr) => {
                             if (error) {
@@ -126,9 +192,4 @@ function updatePlayPauseLEDs() {
     });
 }
 
-// Call the function to update play/pause LEDs every few seconds
-setInterval(updatePlayPauseLEDs, 5000); // Adjust interval as needed
 
-
-// Start the main loop
-check_buttons_and_update_leds();
