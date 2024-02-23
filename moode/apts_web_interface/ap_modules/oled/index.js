@@ -9,7 +9,7 @@ read_config();
 
 exports.module_head = `<div class="content_name">
                 <h2>Screen</h2>
-                <p>To configure your Evo Sabre OLED#2 display !</p>
+                <p>To configure your Quadify oled display !</p>
             </div>`
 
 
