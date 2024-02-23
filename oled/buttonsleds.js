@@ -31,6 +31,11 @@ const button_map = [
 
 let prev_button_state = [[1, 1], [1, 1], [1, 1], [1, 1]];
 
+function control_leds(led_state) {
+    console.log(`Setting LED state to ${led_state}.`);
+    bus.writeByteSync(MCP23017_ADDRESS, MCP23017_GPIOA, led_state);
+}
+
 function executeMpcCommand(command) {
   exec(`mpc ${command}`, (error, stdout, stderr) => {
     if (error) {
@@ -212,16 +217,31 @@ const PLAY_LED = 1; // LED index for play button
 const PAUSE_LED = 2; // LED index for pause button
 
 function updatePlayPauseLEDs() {
-    exec("mpc status", (error, stdout, stderr) => {
+    let statusCommand = '';
+    if (platform === 'volumio') {
+        statusCommand = "volumio status";
+    } else if (platform === 'moode') {
+        statusCommand = "mpc status";
+    } else {
+        console.log("Platform not supported for status update.");
+        return;
+    }
+
+    exec(statusCommand, (error, stdout, stderr) => {
         if (error) {
-            console.error(`Error executing MPC command: ${error.message}`);
+            console.error(`Error executing status command: ${error.message}`);
             return;
         }
         
-        // Parse MPC status to check if playing or paused
-        const statusLines = stdout.split('\n');
-        const status = statusLines.find(line => line.startsWith("[playing]"));
-        const isPlaying = status !== undefined;
+        // Determine the play/pause state based on the platform
+        let isPlaying = false;
+        if (platform === 'volumio') {
+            const status = JSON.parse(stdout);
+            isPlaying = status.status === 'play';
+        } else if (platform === 'moode') {
+            const status = stdout.split('\n').find(line => line.startsWith("[playing]"));
+            isPlaying = status !== undefined;
+        }
         
         // Update LEDs based on play/pause state
         const led_state = isPlaying ? (1 << (PLAY_LED - 1)) : (1 << (PAUSE_LED - 1));
@@ -229,6 +249,15 @@ function updatePlayPauseLEDs() {
     });
 }
 
-// At the end of your script, ensure you call this function once to start the loop
-check_buttons_and_update_leds();
+// Call this function to start the status update loop
+function startStatusUpdateLoop() {
+    const updateInterval = 5000; // Update every 5 seconds
+    setInterval(updatePlayPauseLEDs, updateInterval);
+}
+
+// Modify the detectPlatform function to include startStatusUpdateLoop in the callback
+detectPlatform(function() {
+    check_buttons_and_update_leds();
+    startStatusUpdateLoop(); // Start updating play/pause LEDs based on current player status
+});
 
