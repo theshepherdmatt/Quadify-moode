@@ -62,7 +62,7 @@ function read_button_matrix() {
     return button_matrix_state;
 }
 
-let platform = '';
+let platform = ''; // Ensure this is globally accessible
 
 function detectPlatform(callback) {
     exec("volumio status", (error, stdout, stderr) => {
@@ -72,7 +72,44 @@ function detectPlatform(callback) {
             platform = 'moode';
         }
         console.log(`Detected platform: ${platform}`);
-        callback();
+        if (typeof callback === "function") {
+            callback(); // Call the callback function once the platform is determined
+        }
+    });
+}
+
+// Modify the initial call to include the main loop of your script as a callback
+detectPlatform(function() {
+    check_buttons_and_update_leds();
+});
+
+function detectPlatformImproved(callback) {
+    exec("systemctl status volumio", (error, stdout, stderr) => {
+        if (!error) {
+            platform = 'volumio';
+        } else {
+            exec("systemctl status moodeaudio", (error, stdout, stderr) => {
+                if (!error) {
+                    platform = 'moode';
+                } else {
+                    platform = 'unknown';
+                }
+                console.log(`Detected platform: ${platform}`);
+                callback();
+            });
+        }
+    });
+}
+
+function executeMpcCommandEnhanced(command) {
+    exec(`mpc ${command}`, (error, stdout, stderr) => {
+        console.log(`Executing command: mpc ${command}`);
+        if (error) {
+            console.error(`Error executing MPC command: ${error.message}`);
+            return;
+        }
+        if (stdout) console.log(`stdout: ${stdout}`);
+        if (stderr) console.error(`stderr: ${stderr}`);
     });
 }
 
@@ -192,4 +229,6 @@ function updatePlayPauseLEDs() {
     });
 }
 
+// At the end of your script, ensure you call this function once to start the loop
+check_buttons_and_update_leds();
 
