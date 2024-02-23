@@ -8,7 +8,10 @@ const dt = new Gpio(5, 'in', 'both');
 const sw = new Gpio(6, 'in', 'falling', { debounceTimeout: 10 });
 
 let clkLastState = clk.readSync();
-let debounceTimer;
+let lastDirection = null;
+let stepCounter = 0;
+const stepsPerAction = 4; // Adjust based on desired sensitivity
+const debounceDelay = 5; // Shorter delay to quickly respond to changes
 
 // Command execution queue
 const execQueue = queue((task, completed) => {
@@ -18,29 +21,52 @@ const execQueue = queue((task, completed) => {
         if (stderr) console.error(`stderr: ${stderr}`);
         completed();
     });
-}, 1); // Single concurrency to ensure commands are executed one at a time
+}, 1);
+
+let platform = '';
+exec("volumio status", (error, stdout, stderr) => {
+    if (!error) {
+        platform = 'volumio';
+    } else {
+        platform = 'moode';
+    }
+    console.log(`Detected platform: ${platform}`);
+});
 
 const handleRotation = () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-        const clkState = clk.readSync();
-        const dtState = dt.readSync();
+    const clkState = clk.readSync();
+    const dtState = dt.readSync();
 
-        if (clkState !== clkLastState) {
-            const command = dtState !== clkState ? 'mpc volume +5' : 'mpc volume -5';
-            console.log(command.includes('+5') ? 'Clockwise' : 'Counter-Clockwise');
-            execQueue.push({command});
+    if (clkState !== clkLastState) {
+        const direction = clkState !== dtState ? 'Clockwise' : 'Counter-Clockwise';
+
+        // Check if direction changed
+        if (lastDirection && direction !== lastDirection) {
+            // Reset counter if direction changed
+            stepCounter = 1;
+        } else {
+            // Increment counter if direction is consistent
+            stepCounter++;
         }
-        clkLastState = clkState;
-    }, 10); // Adjust debounce time as needed
+
+        // Update last direction
+        lastDirection = direction;
+
+        // Execute command if enough steps in the same direction are accumulated
+        if (stepCounter >= stepsPerAction) {
+            const command = direction === 'Clockwise' ? (platform === 'volumio' ? 'volumio volume plus' : 'mpc volume +5') : (platform === 'volumio' ? 'volumio volume minus' : 'mpc volume -5');
+            console.log(`${direction}: ${command}`);
+            execQueue.push({ command });
+            stepCounter = 0; // Reset counter after executing an action
+        }
+    }
+    clkLastState = clkState;
 };
 
 const handleButtonPress = () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-        console.log('Button Pressed');
-        execQueue.push({command: 'mpc toggle'});
-    }, 10); // Adjust debounce time as needed
+    console.log('Button Pressed');
+    const command = platform === 'volumio' ? 'volumio toggle' : 'mpc toggle';
+    execQueue.push({ command });
 };
 
 // Event watchers setup
