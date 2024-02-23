@@ -82,9 +82,17 @@ case "$1" in
             echo "options spidev bufsiz=8192" | sudo tee -a /etc/modprobe.d/spidev.conf > /dev/null
         fi
 
+<<<<<<< Updated upstream
         # Register & enable OLED service for Moode with a delay
         printf "[Unit]\nDescription=OLED Display Service for Moode\nAfter=mpd.service\nRequires=mpd.service\n[Service]\nWorkingDirectory=%s\nExecStartPre=/bin/sleep 15\nExecStart=/usr/bin/node %s/index.js moode\nExecStop=/usr/bin/node %s/off.js\nStandardOutput=null\nType=simple\nUser=root\n[Install]\nWantedBy=multi-user.target" "$PWD" "$PWD" "$PWD" | sudo tee /etc/systemd/system/oled.service > /dev/null
         sudo systemctl enable oled > /dev/null 2>> install_log.txt
+=======
+        # Register & enable OLED service
+        #printf "[Unit]\nDescription=OLED Display Service\nAfter=mpd.service\nRequires=mpd.service\n[Service]\nWorkingDirectory=%s\nExecStart=/usr/bin/node %s/index.js moode\nExecStop=/usr/bin/node %s/off.js\nStandardOutput=null\nType=simple\nUser=%s\n[Install]\nWantedBy=multi-user.target" "$PWD" "$PWD" "$PWD" "$CURRENT_USER" | sudo tee /etc/systemd/system/oled.service > /dev/null
+        printf "[Unit]\nDescription=OLED Display Service for Moode\nAfter=mpd.service\nRequires=mpd.service\n[Service]\nWorkingDirectory=%s\nExecStartPre=/bin/sleep 15\nExecStart=/usr/bin/node %s/index.js moode\nExecStop=/usr/bin/node %s/off.js\nStandardOutput=null\nType=simple\nUser=%s\n[Install]\nWantedBy=multi-user.target\n" "$PWD" "$PWD" "$PWD" "$USER" | sudo tee /etc/systemd/system/oled.service > /dev/null && sudo systemctl enable oled > /dev/null 2>> install_log.txt
+	sudo systemctl enable oled > /dev/null 2>> install_log.txt
+        echo "OLED service enabled (/etc/systemd/system/oled.service)"
+>>>>>>> Stashed changes
 
         echo "OLED service for Moode has been configured with a startup delay. Please reboot if necessary."
         ;;

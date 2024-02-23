@@ -1,132 +1,92 @@
-#!bin/sh 
-case "$1" in 
-'volumio')
-	install_dep_volumio(){
-		if apt-get -qq install build-essential > /dev/null 2>&1; then
-			echo "Build-essential package is installed."
-		else
-			printf "This version of Volumio lacks some dependencies for software compilation.\nTrying to workaround using this technique : https://community.volumio.org/t/cannot-install-build-essential-package/46856/16 ...\n" &&
-			bash Workaround_BuildEssentials.sh  > /dev/null 2>> install_log.txt && 
-			echo "... OK" && return 1 ||  
-			echo "... Failed again. The OLED display will not be installed." &&
-			exit 1
-		fi
-	}
- 
-	start_time="$(date +"%T")"
-	echo "* Installing : Quadify OLED#2"
-	echo "" > install_log.txt
-	install_dep_volumio
-	sudo -u volumio npm install pi-spi  				 > /dev/null 2>> install_log.txt
-	sudo -u volumio npm install async  					 > /dev/null 2>> install_log.txt
-	sudo -u volumio npm install onoff  					 > /dev/null 2>> install_log.txt
-	sudo -u volumio npm install date-and-time 			 > /dev/null 2>> install_log.txt
-	sudo -u volumio npm install socket.io-client@2.1.1 	 > /dev/null 2>> install_log.txt
-	
-	# ---------------------------------------------------
-	# Enable spi-dev module to allow hardware interfacing
-	if ! grep -q spi-dev "/etc/modules"; then
-		echo "spi-dev" >> /etc/modules
-	fi
-	if ! grep -q dtparam=spi=on "/boot/userconfig.txt"; then
-		echo "dtparam=spi=on"  >> /boot/userconfig.txt
-	fi
+#!/bin/sh
 
-	if [ ! -f "/etc/modprobe.d/spidev.conf" ] || ! cat "/etc/modprobe.d/spidev.conf" | grep -q 'bufsiz=8192'  ; then echo "options spidev bufsiz=8192"  >> /etc/modprobe.d/spidev.conf ; fi
+# Function to install dependencies for Volumio
+install_dep_volumio() {
+    if apt-get -qq install build-essential > /dev/null 2>&1; then
+        echo "Build-essential package is installed."
+    else
+        printf "This version of Volumio lacks some dependencies for software compilation.\nTrying to workaround using this technique : https://community.volumio.org/t/cannot-install-build-essential-package/46856/16 ...\n"
+        if bash Workaround_BuildEssentials.sh > /dev/null 2>> install_log.txt; then
+            echo "... OK"
+            return 1
+        else
+            echo "... Failed again. The OLED display will not be installed."
+            exit 1
+        fi
+    fi
+}
 
-	# ---------------------------------------------------
-	# Register & enable service so display will run at boot
-	printf "[Unit]
-	Description=OLED Display Service
-	After=volumio.service
-	[Service]
-	WorkingDirectory=${PWD}
-	ExecStart=/usr/bin/node ${PWD}/index.js volumio
-	ExecStop=/usr/bin/node ${PWD}/off.js
-	StandardOutput=null
-	Type=simple
-	User=volumio
-	[Install]
-	WantedBy=multi-user.target"> /etc/systemd/system/oled.service &&
-	systemctl enable oled	> /dev/null 2>> install_log.txt	&&
+# Main installation script
+case "$1" in
+    'volumio')
+        CURRENT_USER=$(whoami)
+        start_time="$(date +"%T")"
+        echo "* Installing: Quadify OLED#2" > install_log.txt
+        install_dep_volumio
+        # Installing npm dependencies
+        for package in async i2c-bus pi-spi onoff date-and-time socket.io-client@2.1.1; do
+            sudo -u volumio npm install "$package" > /dev/null 2>> install_log.txt
+        done
 
+        # Enable spi-dev module to allow hardware interfacing
+        echo "spi-dev" | sudo tee -a /etc/modules > /dev/null
+        echo "dtparam=spi=on" | sudo tee -a /boot/userconfig.txt > /dev/null
 
-	echo "OLED service enabled ( /etc/systemd/system/oled.service )"
+        # Ensure SPI buffer size is set
+        if [ ! -f "/etc/modprobe.d/spidev.conf" ] || ! grep -q 'bufsiz=8192' /etc/modprobe.d/spidev.conf; then
+            echo "options spidev bufsiz=8192" | sudo tee -a /etc/modprobe.d/spidev.conf > /dev/null
+        fi
 
-	if lsmod | grep "spidev" &> /dev/null ; then
-	  systemctl start oled
-	  echo "Display should turn on."
-	  echo "*End of installation : Quadify OLED#2 (spidev module is already loaded, so no reboot is required)"
-	  
-	else
-	  echo "*End of installation : Quadify OLED#2 (spidev module is NOT loaded : a reboot is required)"
-	fi
+        # Register & enable OLED service
+        printf "[Unit]\nDescription=OLED Display Service\nAfter=volumio.service\n[Service]\nWorkingDirectory=%s\nExecStart=/usr/bin/node %s/index.js volumio\nExecStop=/usr/bin/node %s/off.js\nStandardOutput=null\nType=simple\nUser=volumio\n[Install]\nWantedBy=multi-user.target" "$PWD" "$PWD" "$PWD" | sudo tee /etc/systemd/system/oled.service > /dev/null
+        sudo systemctl enable oled > /dev/null 2>> install_log.txt
+        echo "OLED service enabled (/etc/systemd/system/oled.service)"
 
-	echo started at $start_time finished at "$(date +"%T")" >> install_log.txt
-	exit 0
-	;;
+        # Start service if spidev is loaded
+        if lsmod | grep -q "spidev"; then
+            sudo systemctl start oled
+            echo "Display should turn on."
+            echo "*End of installation: Quadify OLED#2 (spidev module is already loaded, so no reboot is required)"
+        else
+            echo "*End of installation: Quadify OLED#2 (spidev module is NOT loaded: a reboot is required)"
+        fi
 
-'moode')
-	start_time="$(date +"%T")"
-	echo "* Installing : Quadify OLED#2"
-	echo "" > install_log.txt
+        echo "Started at $start_time, finished at $(date +"%T")" >> install_log.txt
+        exit 0
+        ;;
 
-	# ---------------------------------------------------
-	# Installing nodejs if needed and deps
-	echo "installing nodejs env and dependencies"
-	apt-get install -y nodejs npm					 > /dev/null 2>> install_log.txt
-	sudo -u pi npm install pi-spi  					 > /dev/null 2>> install_log.txt
-	sudo -u pi npm install async  					 > /dev/null 2>> install_log.txt
-	sudo -u pi npm install onoff  					 > /dev/null 2>> install_log.txt
-	sudo -u pi npm install date-and-time 			 > /dev/null 2>> install_log.txt
-	sudo -u pi npm install socket.io-client 		 > /dev/null 2>> install_log.txt
+    'moode')
+        CURRENT_USER=$(whoami)
+        start_time="$(date +"%T")"
+        echo "* Installing: Quadify OLED#2" > install_log.txt
+        # Installing npm dependencies
+        sudo -u "$CURRENT_USER" npm install async i2c-bus pi-spi onoff date-and-time socket.io-client > /dev/null 2>> install_log.txt
 
-	# ---------------------------------------------------
-	# Enable spi-dev module to allow hardware interfacing
-	if ! grep -q spi-dev "/etc/modules"; then
-		echo "spi-dev" >> /etc/modules
-	fi
-	if ! grep -q dtparam=spi=on "/boot/config.txt"; then
-		echo "dtparam=spi=on"  >> /boot/config.txt
-	fi
-	if  ! grep -q bufsiz=8192 "/etc/modprobe.d/spidev.conf";  then
-		echo "options spidev bufsiz=8192"  >> /etc/modprobe.d/spidev.conf 
-	fi
+        # Enable spi-dev module to allow hardware interfacing
+        echo "spi-dev" | sudo tee -a /etc/modules > /dev/null
+        echo "dtparam=spi=on" | sudo tee -a /boot/config.txt > /dev/null
 
+        # Ensure SPI buffer size is set
+        if [ ! -f "/etc/modprobe.d/spidev.conf" ] || ! grep -q 'bufsiz=8192' /etc/modprobe.d/spidev.conf; then
+            echo "options spidev bufsiz=8192" | sudo tee -a /etc/modprobe.d/spidev.conf > /dev/null
+        fi
 
-	# ---------------------------------------------------
-	# Register & enable service so display will run at boot
+        # Register & enable OLED service
+        #printf "[Unit]\nDescription=OLED Display Service\nAfter=mpd.service\nRequires=mpd.service\n[Service]\nWorkingDirectory=%s\nExecStart=/usr/bin/node %s/index.js moode\nExecStop=/usr/bin/node %s/off.js\nStandardOutput=null\nType=simple\nUser=%s\n[Install]\nWantedBy=multi-user.target" "$PWD" "$PWD" "$PWD" "$CURRENT_USER" | sudo tee /etc/systemd/system/oled.service > /dev/null
+        printf "[Unit]\nDescription=OLED Display Service for Moode\nAfter=mpd.service\nRequires=mpd.service\n[Service]\nWorkingDirectory=%s\nExecStartPre=/bin/sleep 15\nExecStart=/usr/bin/node %s/index.js moode\nExecStop=/usr/bin/node %s/off.js\nStandardOutput=null\nType=simple\nUser=%s\n[Install]\nWantedBy=multi-user.target\n" "$PWD" "$PWD" "$PWD" "$USER" | sudo tee /etc/systemd/system/oled.service > /dev/null && sudo systemctl enable oled > /dev/null 2>> install_log.txt
+	sudo systemctl enable oled > /dev/null 2>> install_log.txt
+        echo "OLED service enabled (/etc/systemd/system/oled.service)"
 
-	printf "[Unit]
-	Description=OLED Display Service
-	After=mpd.service
-	Requires=mpd.service
-	[Service]
-	WorkingDirectory=${PWD}
-	ExecStart=/usr/bin/node ${PWD}/index.js moode
-	ExecStop=/usr/bin/node ${PWD}/off.js
-	StandardOutput=null
-	Type=simple
-	User=$(whoami)
-	[Install]
-	WantedBy=multi-user.target"> /etc/systemd/system/oled.service &&
-	systemctl enable oled	> /dev/null 2>> install_log.txt	&&
-	echo "OLED service enabled ( /etc/systemd/system/oled.service )"
+        # Start service if spidev is loaded
+        if lsmod | grep -q "spidev"; then
+            sudo systemctl start oled
+            echo "Display should turn on, if not give it a reboot."
+            echo "*End of installation: Quadify OLED#2 (spidev module is already loaded, so no reboot is required)"
+        else
+            echo "*End of installation: Quadify OLED#2 (spidev module is NOT loaded: a reboot is required)"
+        fi
 
-	if lsmod | grep "spidev" &> /dev/null ; then
-	  systemctl start oled
-	  echo "Display should turn on, if not give it a reboot."
-	  echo "*End of installation : Quadify OLED#2 (spidev module is already loaded, so no reboot is required)"
-	  
-	else
-	  echo "*End of installation : Quadify OLED#2 (spidev module is NOT loaded : a reboot is required)"
-	fi
-
-	echo started at $start_time finished at "$(date +"%T")" >> install_log.txt
-	exit 0
-	;;
-	
-esac 
-
-
-
+        echo "Started at $start_time, finished at $(date +"%T")" >> install_log.txt
+        exit 0
+        ;;
+esac

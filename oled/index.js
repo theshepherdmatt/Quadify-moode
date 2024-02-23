@@ -43,7 +43,7 @@ var DRIVER;
 var TIME_BEFORE_CLOCK = 6000; // in ms
 var TIME_BEFORE_SCREENSAVER = 60000; // in ms
 var TIME_BEFORE_DEEPSLEEP = 120000; // in ms
-var LOGO_DURATION = 5000; // in ms
+var LOGO_DURATION = 15000; // in ms
 var CONTRAST = 254; // range 1-254
 var extn_exit_sleep_mode = false;
 

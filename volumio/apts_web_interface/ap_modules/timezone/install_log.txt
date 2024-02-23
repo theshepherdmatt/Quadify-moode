@@ -1,3 +1,4 @@
 
-groupadd: group 'audiophonics' already exists
-started at 21:50:31 finished at 21:50:31
+usermod: user 'volumio' does not exist
+%audiophonics ALL=(ALL) NOPASSWD: /bin/sh /home/matt/Quadify-Volumio/volumio/apts_web_interface/ap_modules/timezone/settime.sh *
+started at 06:08:25 finished at 06:08:25

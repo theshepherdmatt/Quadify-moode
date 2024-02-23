@@ -1,47 +1,14 @@
-
-In file included from ../spi_binding.cc:1:
-/home/volumio/.cache/node-gyp/14.15.4/include/node/node.h:758:43: warning: cast between incompatible function types from 'void (*)(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE)' {aka 'void (*)(v8::Local<v8::Object>)'} to 'node::addon_register_func' {aka 'void (*)(v8::Local<v8::Object>, v8::Local<v8::Value>, void*)'} [-Wcast-function-type]
-       (node::addon_register_func) (regfunc),                          \
-                                           ^
-/home/volumio/.cache/node-gyp/14.15.4/include/node/node.h:792:3: note: in expansion of macro 'NODE_MODULE_X'
-   NODE_MODULE_X(modname, regfunc, NULL, 0)  // NOLINT (readability/null_usage)
-   ^~~~~~~~~~~~~
-../spi_binding.cc:162:1: note: in expansion of macro 'NODE_MODULE'
- NODE_MODULE(spi_binding, InitAll)
- ^~~~~~~~~~~
-npm WARN saveError ENOENT: no such file or directory, open '/home/volumio/Quadify-Volumio/volumio/oled/package.json'
-npm WARN enoent ENOENT: no such file or directory, open '/home/volumio/Quadify-Volumio/volumio/oled/package.json'
-npm WARN oled No description
-npm WARN oled No repository field.
-npm WARN oled No README data
-npm WARN oled No license field.
-
-npm WARN saveError ENOENT: no such file or directory, open '/home/volumio/Quadify-Volumio/volumio/oled/package.json'
-npm WARN enoent ENOENT: no such file or directory, open '/home/volumio/Quadify-Volumio/volumio/oled/package.json'
-npm WARN oled No description
-npm WARN oled No repository field.
-npm WARN oled No README data
-npm WARN oled No license field.
-
-npm WARN saveError ENOENT: no such file or directory, open '/home/volumio/Quadify-Volumio/volumio/oled/package.json'
-npm WARN enoent ENOENT: no such file or directory, open '/home/volumio/Quadify-Volumio/volumio/oled/package.json'
-npm WARN oled No description
-npm WARN oled No repository field.
-npm WARN oled No README data
-npm WARN oled No license field.
-
-npm WARN saveError ENOENT: no such file or directory, open '/home/volumio/Quadify-Volumio/volumio/oled/package.json'
-npm WARN enoent ENOENT: no such file or directory, open '/home/volumio/Quadify-Volumio/volumio/oled/package.json'
-npm WARN oled No description
-npm WARN oled No repository field.
-npm WARN oled No README data
-npm WARN oled No license field.
-
-npm WARN saveError ENOENT: no such file or directory, open '/home/volumio/Quadify-Volumio/volumio/oled/package.json'
-npm WARN enoent ENOENT: no such file or directory, open '/home/volumio/Quadify-Volumio/volumio/oled/package.json'
-npm WARN oled No description
-npm WARN oled No repository field.
-npm WARN oled No README data
-npm WARN oled No license field.
-
-started at 21:50:33 finished at 21:51:30
+* Installing: Quadify OLED#2
+sudo: unknown user: volumio
+sudo: error initializing audit plugin sudoers_audit
+sudo: unknown user: volumio
+sudo: error initializing audit plugin sudoers_audit
+sudo: unknown user: volumio
+sudo: error initializing audit plugin sudoers_audit
+sudo: unknown user: volumio
+sudo: error initializing audit plugin sudoers_audit
+sudo: unknown user: volumio
+sudo: error initializing audit plugin sudoers_audit
+sudo: unknown user: volumio
+sudo: error initializing audit plugin sudoers_audit
+Started at 06:08:27, finished at 06:08:33

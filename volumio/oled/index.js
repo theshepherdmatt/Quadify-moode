@@ -43,7 +43,7 @@ var DRIVER;
 var TIME_BEFORE_CLOCK = 6000; // in ms
 var TIME_BEFORE_SCREENSAVER = 60000; // in ms
 var TIME_BEFORE_DEEPSLEEP = 120000; // in ms
-var LOGO_DURATION = 5000; // in ms
+var LOGO_DURATION = 15000; // in ms
 var CONTRAST = 254; // range 1-254
 var extn_exit_sleep_mode = false;
 
@@ -348,36 +348,56 @@ ap_oled.prototype.listen_to = function(api,frequency){
 
 }
 
-ap_oled.prototype.starlight_screensaver = function() {
-    if (this.page === "starlight_screensaver") return;
-    clearInterval(this.update_interval);
-    this.page = "starlight_screensaver";
-
-    let stars = []; // Array to hold star positions
-    let starCount = 100; // Number of stars to display
-
-    // Initialize stars with random positions
-    for (let i = 0; i < starCount; i++) {
-        stars.push({
-            x: Math.floor(Math.random() * this.width),
-            y: Math.floor(Math.random() * this.height)
-        });
-    }
-
-    this.refresh_action = () => {
-        this.driver.buffer.fill(0x00); // Clear the display buffer
-
-        // Draw each star
-        stars.forEach(star => {
-            this.driver.drawPixel([star.x, star.y, 1]); // Assuming drawPixel takes an array [x, y, color]
-        });
-
-        this.driver.update(true); // Update the display with the new buffer
-    };
-
-    this.update_interval = setInterval(() => { this.refresh_action(); }, 100); // Refresh the screensaver every 100ms
-};
-
+ap_oled.prototype.snake_screensaver = function(){
+if (this.page === "snake_screensaver") return;
+	clearInterval(this.update_interval);
+	this.page = "snake_screensaver";
+	
+	let box_pos = [0,0];
+	let count = 0;
+	let flip = false;
+	let tail = [];
+	let tail_max = 25;
+	let t_tail_length = 1;
+	let random_pickups = [];
+	let screen_saver_animation_reset =()=>{
+		tail = [];
+		count = 0;
+		t_tail_length = 10;
+		random_pickups = [];
+		let nb = 7;
+		while(nb--){
+			let _x =  Math.floor(Math.random() * (this.width ));
+			let _y =  Math.floor(Math.random() * (this.height/3))*3;
+			random_pickups.push([_x,_y]);
+		}
+	}
+	screen_saver_animation_reset();
+	this.refresh_action = ()=>{
+		this.driver.buffer.fill(0x00);
+		let x;
+		if( count % this.width == 0) {flip = !flip}
+		if(flip) x = count % this.width +1
+		else x = this.width - count % this.width
+		let y = ~~( count / this.width ) *3
+		tail.push([x,y]);
+		if(tail.length > t_tail_length ) tail.shift();
+		for(let i of tail){
+			this.driver.fillRect(i[0],i[1]-1,2,3,1);
+		}
+		for(let r of random_pickups){
+			if(  ( ( flip && x >= r[0] ) || ( !flip && x <= r[0] ) ) && y >= r[1] ){ 
+				t_tail_length +=5;
+				random_pickups.splice(random_pickups.indexOf(r),1)
+			}
+			this.driver.fillRect(r[0],r[1],1,1,1);
+		}
+		count++;
+		this.driver.update(true);
+		if(y > this.height ) screen_saver_animation_reset();
+	}
+	this.update_interval = setInterval( ()=>{this.refresh_action()}, 40);
+}
 
 ap_oled.prototype.deep_sleep = function(){
 if (this.page === "deep_sleep") return;
@@ -583,7 +603,7 @@ ap_oled.prototype.handle_sleep = function(exit_sleep){
 			let _deepsleep_ = ()=>{this.deep_sleep();}
 		
 			let _screensaver_ = ()=>{
-				this.starlight_screensaver();
+				this.snake_screensaver();
 				this.iddle_timeout = setTimeout(_deepsleep_,TIME_BEFORE_DEEPSLEEP);
 			}
 			
