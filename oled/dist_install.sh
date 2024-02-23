@@ -82,21 +82,11 @@ case "$1" in
             echo "options spidev bufsiz=8192" | sudo tee -a /etc/modprobe.d/spidev.conf > /dev/null
         fi
 
-        # Register & enable OLED service for Moode
-        printf "[Unit]\nDescription=OLED Display Service\nAfter=mpd.service\nRequires=mpd.service\n[Service]\nWorkingDirectory=%s\nExecStart=/usr/bin/node %s/index.js moode\nExecStop=/usr/bin/node %s/off.js\nStandardOutput=null\nType=simple\nUser=%s\n[Install]\nWantedBy=multi-user.target" "$PWD" "$PWD" "$PWD" "$(whoami)" | sudo tee /etc/systemd/system/oled.service > /dev/null
+        # Register & enable OLED service for Moode with a delay
+        printf "[Unit]\nDescription=OLED Display Service for Moode\nAfter=mpd.service\nRequires=mpd.service\n[Service]\nWorkingDirectory=%s\nExecStartPre=/bin/sleep 15\nExecStart=/usr/bin/node %s/index.js moode\nExecStop=/usr/bin/node %s/off.js\nStandardOutput=null\nType=simple\nUser=root\n[Install]\nWantedBy=multi-user.target" "$PWD" "$PWD" "$PWD" | sudo tee /etc/systemd/system/oled.service > /dev/null
         sudo systemctl enable oled > /dev/null 2>> install_log.txt
 
-        # Start service if spidev is loaded
-        if lsmod | grep -q "spidev"; then
-            sudo systemctl start oled
-            echo "OLED service enabled and started for Moode."
-        else
-            echo "OLED service enabled for Moode, but spidev module is NOT loaded: a reboot is required."
-        fi
-        ;;
-    *)
-        echo "Invalid option. Please specify 'volumio' or 'moode'."
-        exit 1
+        echo "OLED service for Moode has been configured with a startup delay. Please reboot if necessary."
         ;;
 esac
 
