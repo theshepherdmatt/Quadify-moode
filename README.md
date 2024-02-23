@@ -35,12 +35,17 @@ sudo apt-get install git -y
 
 * Download source files (this repository).
 ```bash
-git clone https://github.com/theshepherdmatt/Quadify-Volumio.git
+git clone https://github.com/theshepherdmatt/Quadify.git
 ```
 
-* Enter the directory.
+* Enter the directory for Volumio
 ```bash
-cd Quadify-Volumio/volumio
+cd Quadify/volumio
+```
+or
+* Enter the directory for MoOde
+```bash
+cd Quadify/moode
 ```
 
 * Run the installation script **as root** to install all available features
