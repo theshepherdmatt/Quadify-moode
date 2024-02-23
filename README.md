@@ -7,9 +7,9 @@ This repository holds sources and methods for installing the specific hardware f
   
 ### Volumio
 * Installation of OLED Display
-* Installation of aptswi (web interface with some system options, see below) 
+* Installation of web interface with some system options, see below 
 
-## APTSWI : ToolSet in a Web Interface
+## ToolSet in a Web Interface
 Some options can be configured by the user (such as OLED brightness, sleep-delay, or boot logo) in a tiny web interface powered by nodeJS. 
 You can get there by using your web browser to open the **port 4150** : 
 * Navigate to [http://volumio.local:4150](http://volumio.local:4150.). 
@@ -28,7 +28,7 @@ You can get there by using your web browser to open the **port 4150** :
 sudo apt-get update
 ```
 
-* Install Git
+* Install Git (MoOde only)
 ```bash
 sudo apt-get install git -y
 ```
