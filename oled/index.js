@@ -289,7 +289,7 @@ ap_oled.prototype.listen_to = function(api,frequency){
 		var moode_listener = require("./moode_listener.js").moode_listener;
 		var moode = new moode_listener();
 		moode.on("moode_data", (data)=>{
-
+	
 			let exit_sleep = false;
 			if(extn_exit_sleep_mode){
 				extn_exit_sleep_mode = false;
@@ -298,23 +298,23 @@ ap_oled.prototype.listen_to = function(api,frequency){
 			
 			api_state_waiting = false;
 			
-            if( // changement de piste
-                this.data.title  !== data.title  || 
-                this.data.artist !== data.artist || 
-                this.data.album  !== data.album  
-            ){
-                this.text_to_display = data.title + (data.artist?" - " + data.artist:"") + (data.album?" - " + data.album:"");
+			if( // changement de piste
+				this.data.title  !== data.title  || 
+				this.data.artist !== data.artist || 
+				this.data.album  !== data.album  
+			){
+				this.text_to_display = data.title + (data.artist?" - " + data.artist:"") + (data.album?" - " + data.album:"");
 				this.driver.CacheGlyphsData( this.text_to_display);
 				this.text_width = this.driver.getStringWidthUnifont(this.text_to_display + " - ");
 				
-                this.scroller_x = 0;
-                this.refresh_track = REFRESH_TRACK;
+				this.scroller_x = 0;
+				this.refresh_track = REFRESH_TRACK;
 				this.footertext = "";
 				exit_sleep = true;
-            }
+			}
 			
 			// changement de volume
-			if(  this.data.volume !== data.volume ){exit_sleep = true;}
+			if( this.data.volume !== data.volume ){exit_sleep = true;}
 			
 			// avance dans la piste
 			let seek_data = this.moode_seek_format( data.elapsed, data.time, data.song_percent );
@@ -327,26 +327,38 @@ ap_oled.prototype.listen_to = function(api,frequency){
 			if(data.state == "play"){exit_sleep = true;}
 			
 			this.footertext = "";
-
-			if (data.audio) 	this.footertext += data.audio + " ";
-			if (data.bitrate)	this.footertext += data.bitrate + " ";
-
+	
+			if (data.audio) this.footertext += data.audio + " ";
+			if (data.bitrate) this.footertext += data.bitrate + " ";
+			
 			this.data = data; // attention à la position de cette commande : une fois cette assignation effectuée, plus aucune comparaison n'est possible avec l'état précédent
+			console.log("Encoded data before setting trackType:", data.encoded);
+	
+			if (data.encoded) {
+				const encodedParts = data.encoded.split(' ');
+				// Assuming the format is always "FLAC <bit-depth>/<sample-rate> kHz, <channels>ch"
+				// and you only want to keep the "FLAC <bit-depth>/<sample-rate>" part
+				const flacInfo = encodedParts.slice(0, 2).join(' '); // This should give you "FLAC 16/48"
+				console.log("Modified trackType:", flacInfo);
+				this.data.trackType = flacInfo;
+			} else {
+				this.data.trackType = ""; // Or some default value if necessary
+			}
+	
 			this.data.seek_string = seek_data.seek_string;
 			this.data.ratiobar = seek_data.ratiobar;
 			this.handle_sleep(exit_sleep);
 			this.data.status = data.state;
-			this.data.trackType = data.encoded;
+			console.log("TrackType after being set:", this.data.trackType);
 		});
-
+	
 		return api_caller;
 	}
 	else if( api === "ip" ){
 		api_caller = setInterval( ()=>{this.get_ip()}, frequency );
 		return api_caller;
 	}
-
-}
+}	
 
 ap_oled.prototype.snake_screensaver = function(){
 if (this.page === "snake_screensaver") return;
