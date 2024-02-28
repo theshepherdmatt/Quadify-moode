@@ -492,7 +492,7 @@ ap_oled.prototype.playback_mode = function(){
 				// Adjust the height and y position according to your needs
 				this.driver.fillRect(startX, this.height - 30, totalTextWidth, 10, 0); // 0 for black
 			
-				this.driver.setCursor(startX, this.height - 30);
+				this.driver.setCursor(startX, this.height - 21);
 				this.driver.writeString(fonts.monospace, 1, this.data.trackType, 4);
 			}
 		  
