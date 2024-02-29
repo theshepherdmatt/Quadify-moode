@@ -1,11 +1,15 @@
 const spiDevice = require('spi-device');
 const { exec } = require('child_process');
 
-// Function to adjust sensitivity with a more responsive curve
 const adjustSensitivity = (rawValue) => {
-  const fraction = rawValue / 1023;
-  const adjustedFraction = Math.pow(fraction, 3); // Cubic function for more sensitivity
-  return Math.round(adjustedFraction * 100);
+  // Map the raw ADC value (0-1023) to the volume range (0-100) within a 360-degree turn
+  const volume = Math.round((rawValue / 1023) * 100);
+
+  // Adjust sensitivity to provide a more significant change in volume
+  const adjustedVolume = volume * 15; // Increasing the scaling factor to provide more power
+
+  // Ensure volume is within the range 0-100
+  return Math.min(Math.max(adjustedVolume, 0), 100);
 };
 
 // Function to read from the MCP3008 channel
@@ -52,10 +56,11 @@ const adjustVolumeWithMPC = (volume) => {
 let lastVolume = -1;
 let stableReadings = 0;
 const volumeChangeThreshold = 2;
-const confirmationThreshold = 2;
 const pollingInterval = 500;
-const debounceThreshold = 10; // Threshold to ignore minor fluctuations
 let debounceCounter = 0; // Counter to track debounce period
+
+const debounceThreshold = 5; // Lower debounce threshold for faster response
+const confirmationThreshold = 1; // Slightly reduce confirmation threshold
 
 // Polling function with debounce logic
 const startPolling = () => {
@@ -86,6 +91,7 @@ const startPolling = () => {
     }
   }, pollingInterval);
 };
+
 
 process.stdin.resume();
 console.log('Script is running, press CTRL+C to exit');
