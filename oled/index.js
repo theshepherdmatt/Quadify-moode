@@ -466,9 +466,9 @@ ap_oled.prototype.playback_mode = function(){
                 let volstring = this.data.volume.toString();
                 if(this.data.mute === true || volstring === "0") volstring = "X";
 
-		this.driver.setCursor(0, this.height - 20); // Move volume display down
+		this.driver.setCursor(4, this.height - 20); // Move volume display down
 		this.driver.writeString(fonts.icons, 1, "0", 5); // Volume icon
-		this.driver.setCursor(10, this.height - 19); // Adjust accordingly
+		this.driver.setCursor(14, this.height - 19); // Adjust accordingly
 		this.driver.writeString(fonts.monospace, 1, volstring, 5); // Volume level
 
 
