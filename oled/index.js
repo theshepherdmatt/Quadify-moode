@@ -215,7 +215,7 @@ ap_oled.prototype.listen_to = function(api,frequency){
 		let first = true;
 		
         socket.emit("getState");
-		socket.on("pushState", (data)=> { // se déclenche si changement de morceau / volume / repeat / random / play / pause , ou si l'utilisateur avance manuellement dans la timebar.
+		socket.on("pushState", (data)=> { //Triggers if there's a change in track/volume/repeat/random/play/pause, or if the user manually advances in the timebar.
 			
 			let exit_sleep = false;
 			if(extn_exit_sleep_mode){
@@ -229,7 +229,7 @@ ap_oled.prototype.listen_to = function(api,frequency){
 			}
 			api_state_waiting = false;
 			
-            if( // changement de piste
+            if( // track change
                 this.data.title  !== data.title  || 
                 this.data.artist !== data.artist || 
                 this.data.album  !== data.album  
@@ -243,10 +243,10 @@ ap_oled.prototype.listen_to = function(api,frequency){
 				this.footertext = "";
 				exit_sleep = true;
             }
-			// changement de volume
+			// change in volume
 			if(  this.data.volume !== data.volume ){exit_sleep = true;}
 			
-			// avance dans la piste
+			// advances in the track
 			let seek_data = this.volumio_seek_format( data.seek, data.duration );
 			
 
@@ -258,14 +258,14 @@ ap_oled.prototype.listen_to = function(api,frequency){
 			if(data.status == "play"){exit_sleep = true;}
 			
 			this.footertext = "";
-			if( !data.samplerate && !data.bitdepth && !data.bitrate ) socket.emit("getQueue"); // s'il manque des données, un autre emit permet de compléter les infos pour tout ce qui est fréquence / bitrate
+			if( !data.samplerate && !data.bitdepth && !data.bitrate ) socket.emit("getQueue"); //If data is missing, another emit allows to complete the information for everything related to frequency/bitrate.
 			else{
 				if ( data.samplerate ) this.footertext += data.samplerate.toString().replace(/\s/gi,"") + " ";
 				if ( data.bitdepth   ) this.footertext += data.bitdepth.toString().replace(/\s/gi,"") + " ";
 				if ( data.bitrate    ) this.footertext += data.bitrate.toString().replace(/\s/gi,"") + " ";
 			}
 			
-			this.data = data; // attention à la position de cette commande : une fois cette assignation effectuée, plus aucune comparaison n'est possible avec l'état précédent
+			this.data = data; // Pay attention to the position of this command: once this assignment is made, no further comparison is possible with the previous state
 			this.data.seek_string = seek_data.seek_string;
 			this.data.ratiobar = seek_data.ratiobar;
 			
@@ -298,7 +298,7 @@ ap_oled.prototype.listen_to = function(api,frequency){
 			
 			api_state_waiting = false;
 			
-			if( // changement de piste
+			if( // track change
 				this.data.title  !== data.title  || 
 				this.data.artist !== data.artist || 
 				this.data.album  !== data.album  
@@ -313,10 +313,10 @@ ap_oled.prototype.listen_to = function(api,frequency){
 				exit_sleep = true;
 			}
 			
-			// changement de volume
+			// volume change
 			if( this.data.volume !== data.volume ){exit_sleep = true;}
 			
-			// avance dans la piste
+			// advances in the track
 			let seek_data = this.moode_seek_format( data.elapsed, data.time, data.song_percent );
 			
 			if(data.state !== "play" && this.raw_seek_value !== data.elapsed){
@@ -331,7 +331,7 @@ ap_oled.prototype.listen_to = function(api,frequency){
 			if (data.audio) this.footertext += data.audio + " ";
 			if (data.bitrate) this.footertext += data.bitrate + " ";
 			
-			this.data = data; // attention à la position de cette commande : une fois cette assignation effectuée, plus aucune comparaison n'est possible avec l'état précédent
+			this.data = data; // Pay attention to the position of this command: once this assignment is made, no further comparison is possible with the previous state
 			console.log("Encoded data before setting trackType:", data.encoded);
 	
 			if (data.encoded) {
@@ -497,20 +497,6 @@ ap_oled.prototype.playback_mode = function(){
 			}
 		  
 			  
-			// track type (flac, mp3, webradio...etc.)
-			//if(this.data.trackType){
-				
-				//this.driver.setCursor(70, this.height - 22); // Move file type down
-				//this.driver.writeString(fonts.monospace, 1, this.data.trackType, 4);
-
-			//}
-
-			// string with any data we have regarding sampling rate and bitrate
-			//if(this.footertext){
-				//this.driver.setCursor(0,57);
-				//this.driver.writeString(fonts.monospace , 1 , this.footertext ,5); 
-			//}
-
 			// play pause stop logo
 			if(this.data.status){
                 let status_symbol = "";
@@ -582,7 +568,7 @@ ap_oled.prototype.playback_mode = function(){
 
 		this.driver.update();
 		this.plotting = false;
-        if(this.refresh_track) return this.refresh_track--; // ne pas updater le curseur de scroll avant d'avoir écoulé les frames statiques (juste après un changement de morceau)
+        if(this.refresh_track) return this.refresh_track--; // do not update the scroll cursor before the static frames have elapsed (right after a track change)
 		this.scroller_x--;
 	}
 
@@ -607,9 +593,9 @@ ap_oled.prototype.get_ip = function(){
 
 ap_oled.prototype.handle_sleep = function(exit_sleep){
 	
-	if( !exit_sleep ){ // Est-ce que l'afficheur devrait passer en mode veille ? 
+	if( !exit_sleep ){ // Should the display go into sleep mode?
 		
-		if(!this.iddle_timeout){ // vérifie si l'écran n'attend pas déjà de passer en veille (instruction initiée dans un cycle précédent)
+		if(!this.iddle_timeout){ // Check if the screen is not already waiting to go into sleep mode (instruction initiated in a previous cycle).
 			
 		
 			let _deepsleep_ = ()=>{this.deep_sleep();}
