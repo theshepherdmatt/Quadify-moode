@@ -28,15 +28,10 @@ sudo apt-get install git -y
 
 * Download source files (this repository).
 ```bash
-git clone https://github.com/theshepherdmatt/Quadify.git
+git clone https://github.com/theshepherdmatt/Quadify-moode.git
 ```
 
 * Enter the directory for Volumio
-```bash
-cd Quadify/volumio
-```
-or
-* Enter the directory for MoOde
 ```bash
 cd Quadify/moode
 ```
@@ -46,7 +41,7 @@ cd Quadify/moode
 sudo bash install.sh
 ```
 
-* Post-installation, a system reboot might be necessary to apply the changes effectively. You’ll be informed via command line if such an action is required..
+* Post-installation, a system reboot might be necessary to apply the changes effectively. You’ll be informed via command line if such an action is required.
 
 ## Installation Timeframe :
 Given the diverse landscape of Linux distributions tailored for Raspberry Pi audio setups and their varying update cycles, the installation duration can significantly fluctuate. Direct compilation of certain components from their source is a necessity, affecting overall setup time. For instance, setting up OLED may take approximately 5 minutes on moOde audio systems.
