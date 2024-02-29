@@ -79,47 +79,6 @@ switch (distro) {
 }
 
 
-http.createServer(server).listen(4153);
-function server(req,res){
-	let cmd = req.url.split("\/")[1];
-	value = cmd.split("=");
-	cmd = value[0];
-	value = value[1];
-	extn_exit_sleep_mode = true;
-	
-	switch(cmd){
-		case 'restart':
-			res.end("1");
-			process.exit(0);
-			break;
-		case 'contrast':
-			if( value < 255 && value > 0 ){
-				res.end("1");
-				let t = DRIVER.refresh_action;
-				CONTRAST = value;
-				DRIVER.refresh_action = function(){
-					DRIVER.refresh_action = function(){};
-					DRIVER.driver.setContrast(value, ()=>{
-						DRIVER.refresh_action = t;
-						DRIVER.refresh_action();
-					})
-				};
-			}
-			break;
-		case 'sleep_after':
-			TIME_BEFORE_SCREENSAVER = value;
-			break;
-		case 'deep_sleep_after':
-			TIME_BEFORE_DEEPSLEEP = value;
-			break;
-		case 'input':
-			if(value === "SPDIF"){DRIVER.spdif_mode();}
-			else DRIVER.playback_mode();
-			break;
-	}
-}
-
-
 const REFRESH_TRACK = 20;
 var api_state_waiting = false; 
 
