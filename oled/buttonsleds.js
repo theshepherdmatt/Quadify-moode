@@ -47,11 +47,6 @@ function executeMpcCommand(command) {
   });
 }
 
-function control_leds(led_state) {
-    console.log(`Setting LED state to ${led_state}.`);
-    bus.writeByteSync(MCP23017_ADDRESS, MCP23017_GPIOA, led_state);
-}
-
 function read_button_matrix() {
     const button_matrix_state = [[0, 0], [0, 0], [0, 0], [0, 0]];
 
